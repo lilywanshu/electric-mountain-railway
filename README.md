@@ -1,1 +1,1 @@
-Help people interested in this repository understand your project by adding a README.
+My vlog source for CS homework in winter holiday.
