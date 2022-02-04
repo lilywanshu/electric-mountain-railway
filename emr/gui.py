@@ -25,7 +25,7 @@ def build_task1():
         rows.append([
             sg.Text(f'UP {up[i]}    DOWN {down[i]}', font=font_body),
             sg.Text(f'Available {available}    Sold {sold}', font=font_body),
-            sg.Button('Purchase', font=font_body)
+            sg.Button('Purchase', font=font_body, key=f'-purchase{i}-')
         ])
     rows.append([sg.Button('END', font=font_body)])
     return rows
@@ -37,7 +37,8 @@ def build_task2():
         [sg.Text('', key='-price-', font=font_body)],
         [sg.Button('-', font=font_body, key='-subtract-'), sg.Input(1, font=font_body, key='-tickets-'), sg.Button('+', font=font_body, key='add')],
         [sg.Text('', key='-caution-', font=font_body, text_color='red')],
-        [sg.Button('Buy', key='-buy-', font=font_body)]
+        [sg.Button('Buy', key='-buy-', font=font_body)],
+        [sg.Button('Back', key='-back-', font=font_body)]
     ]
     return rows
 
@@ -59,7 +60,19 @@ def build_task3():
     rows.append([sg.Button('START', font=font_body, key='-start-')])
     return rows
 
-layout = build_task3()
+def change_task(task_index):
+    for i in (1, 2, 3):
+        window[f'-task{i}-'].update(visible=False)
+    window[f'-task{task_index}-'].update(visible=True)
+
+
+layout = [
+    [
+        sg.Column(build_task1(), key='-task1-', visible=True),
+        sg.Column(build_task2(), key='-task2-', visible=False),
+        sg.Column(build_task3(), key='-task3-', visible=False),
+    ]
+]
 
 window = sg.Window('Electric mountain railway(by Lily)', layout, size=(800, 600))
 
@@ -68,7 +81,14 @@ def main_loop():
     while True:                             # The Event Loop
         event, values = window.read() 
         print(event, values)       
-        if event == sg.WIN_CLOSED or event == 'Exit':
+        if event == sg.WIN_CLOSED:
             break      
-
+        if event == 'END':
+            change_task(3)
+        elif event == '-start-':
+            change_task(1)
+        elif event.startswith('-purchase'):
+            change_task(2)
+        elif event == '-back-':
+            change_task(1)
     window.close()
