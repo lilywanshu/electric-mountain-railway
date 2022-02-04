@@ -20,7 +20,7 @@ def _calculate_price(ticket):
 def check_ticket(index, ticket):
     train = emr.data[index]
     available = train['ticket']
-    if ticket > available:
+    if ticket > available or ticket <= 0:
         raise ValueError(f'You must purchase tickets within the range of {available}!')
     return _calculate_price(ticket)
 

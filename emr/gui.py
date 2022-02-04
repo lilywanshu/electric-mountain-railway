@@ -35,7 +35,12 @@ def build_task2():
         [sg.Text('PURCHASING TIME', font=font_title)],
         [sg.Text('', key='-available-', font=font_body)],
         [sg.Text('', key='-price-', font=font_body)],
-        [sg.Button('-', font=font_body, key='-subtract-'), sg.Input(1, font=font_body, key='-tickets-'), sg.Button('+', font=font_body, key='add')],
+        [
+            sg.Button('-', font=font_body, key='-subtract-'),
+            sg.Input(1, font=font_body, key='-tickets-', enable_events=True),
+            sg.Button('+', font=font_body, key='-add-'),
+            # sg.Button('Check', font=font_body, key='-check-')
+        ],
         [sg.Text('', key='-caution-', font=font_body, text_color='red')],
         [sg.Button('Buy', key='-buy-', font=font_body)],
         [sg.Button('Back', key='-back-', font=font_body)]
@@ -65,6 +70,22 @@ def change_task(task_index):
         window[f'-task{i}-'].update(visible=False)
     window[f'-task{task_index}-'].update(visible=True)
 
+def update_task2(train_index, ticket):
+    window['-caution-'].update(value='')
+    try:
+        tickets_value = int(window['-tickets-'].get()) + int(ticket)
+        if tickets_value < 1:
+            tickets_value = 1
+        window['-tickets-'].update(value=tickets_value)
+        price = emr.main.check_ticket(train_index, tickets_value)
+        train = emr.data[train_index]
+        available = train['ticket'] - tickets_value
+        window['-price-'].update(value=f'The price of train{train_index + 1} is {price}.')
+        window['-available-'].update(value=f'The available tickets of train{train_index + 1} is {available}.')
+        return tickets_value
+    except ValueError as e:
+        window['-caution-'].update(value=str(e))
+    return 0
 
 layout = [
     [
@@ -78,9 +99,10 @@ window = sg.Window('Electric mountain railway(by Lily)', layout, size=(800, 600)
 
 
 def main_loop():
+    train_index = 0 
     while True:                             # The Event Loop
         event, values = window.read() 
-        print(event, values)       
+        print(event, values)
         if event == sg.WIN_CLOSED:
             break      
         if event == 'END':
@@ -89,6 +111,19 @@ def main_loop():
             change_task(1)
         elif event.startswith('-purchase'):
             change_task(2)
+            train_index = int(event[-2])
+            update_task2(train_index, 0)
         elif event == '-back-':
             change_task(1)
+        elif event == '-subtract-':
+            update_task2(train_index, -1)
+        elif event == '-add-':
+            update_task2(train_index, 1)
+        elif event == '-tickets-':
+            update_task2(train_index, 0) 
+        elif event == '-buy-':
+            ticket = update_task2(train_index, 0)
+            if ticket > 0:
+                emr.main.buy_ticket(train_index, ticket)
+                change_task(1)
     window.close()
